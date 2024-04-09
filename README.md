@@ -8,5 +8,7 @@
   需在Token前添加Bearer
 ### NLog日志系统：
   日志写在本地项目logs底下
+### Fluent数据验证：
+  具体见代码
 ### SignalR通讯：
   （未完成）
