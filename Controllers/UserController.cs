@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using WebApplicationTemplate.ActionFilter;
+using WebApplicationTemplate.AppDB;
 using WebApplicationTemplate.Entity;
 using WebApplicationTemplate.JWT;
 
@@ -16,7 +18,7 @@ namespace WebApplicationTemplate.Controllers;
 [Authorize]
 public class UserController : Controller
 {
-    private IMemoryCache _memoryCache;
+    private readonly IMemoryCache _memoryCache;
     private readonly IConfiguration _config;
     private readonly ILogger<UserController> _logger;
     private AppDB.AppDB Db { get; }

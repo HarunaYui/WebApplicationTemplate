@@ -2,14 +2,9 @@
 
 namespace WebApplicationTemplate.AppDB;
 
-public class AppDB : IDisposable
+public class AppDB(string connectionString) : IDisposable
 {
-    public MySqlConnection Connection { get; set; }
-
-    public AppDB(string connectionString)
-    {
-        Connection = new MySqlConnection(connectionString);
-    }
+    public MySqlConnection Connection { get; set; } = new MySqlConnection(connectionString);
 
     public void Dispose()
     {
