@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Text;
+using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
@@ -7,10 +8,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using NLog.Web;
-using TestWebApplication.ActionFilter;
-using TestWebApplication.AppDB;
-using TestWebApplication.JWT;
-using TestWebApplication.MyHub;
+using WebApplicationTemplate.ActionFilter;
+using WebApplicationTemplate.AppDB;
+using WebApplicationTemplate.Entity;
+using WebApplicationTemplate.FluentValidation;
+using WebApplicationTemplate.JWT;
+using WebApplicationTemplate.MyHub;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -74,11 +77,7 @@ builder.Services.AddSignalR();
 builder.Logging.ClearProviders();
 builder.Host.UseNLog();
 builder.Services.AddSingleton(config);
-builder.Services.AddFluentValidationAutoValidation().AddFluentValidationClientsideAdapters(fv =>
-{
-    Assembly assembly = Assembly.GetExecutingAssembly();
-    
-});
+builder.Services.AddScoped<IValidator<User>, UserRequestValidator>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

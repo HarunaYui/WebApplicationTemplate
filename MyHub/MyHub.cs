@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 
-namespace TestWebApplication.MyHub;
+namespace WebApplicationTemplate.MyHub;
 
 public class MyHub : Hub
 {

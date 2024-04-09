@@ -1,7 +1,7 @@
 ﻿using Dapper.Contrib.Extensions;
 using Microsoft.AspNetCore.Identity;
 
-namespace TestWebApplication.Entity;
+namespace WebApplicationTemplate.Entity;
 
 public class User
 {

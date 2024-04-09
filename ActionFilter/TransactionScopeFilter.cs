@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using System.Reflection;
 using System.Transactions;
 
-namespace TestWebApplication.ActionFilter
+namespace WebApplicationTemplate.ActionFilter
 {
     public class TransactionScopeFilter : IAsyncActionFilter
     {

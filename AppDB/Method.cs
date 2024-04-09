@@ -1,6 +1,6 @@
 ﻿using System.Data;
 
-namespace TestWebApplication.AppDB;
+namespace WebApplicationTemplate.AppDB;
 public static class Methods
 {
     /// <summary>

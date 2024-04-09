@@ -7,12 +7,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using TestWebApplication.ActionFilter;
-using TestWebApplication.AppDB;
-using TestWebApplication.Entity;
-using TestWebApplication.JWT;
+using WebApplicationTemplate.Entity;
+using WebApplicationTemplate.JWT;
 
-namespace TestWebApplication.Controllers;
+namespace WebApplicationTemplate.Controllers;
 [Route("api/[controller]/[action]")]
 [ApiController]
 [Authorize]

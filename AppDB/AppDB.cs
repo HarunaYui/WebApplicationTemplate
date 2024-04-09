@@ -1,6 +1,6 @@
 ﻿using MySqlConnector;
 
-namespace TestWebApplication.AppDB;
+namespace WebApplicationTemplate.AppDB;
 
 public class AppDB : IDisposable
 {

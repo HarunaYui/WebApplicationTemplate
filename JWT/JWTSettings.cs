@@ -1,4 +1,4 @@
-﻿namespace TestWebApplication.JWT;
+﻿namespace WebApplicationTemplate.JWT;
 
 public class JWTSettings
 {

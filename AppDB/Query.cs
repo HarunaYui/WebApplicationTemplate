@@ -1,7 +1,7 @@
 ﻿using Dapper;
 using Dapper.Contrib.Extensions;
 
-namespace TestWebApplication.AppDB;
+namespace WebApplicationTemplate.AppDB;
 public class Query
 {
     public AppDB Db { get; set; }
