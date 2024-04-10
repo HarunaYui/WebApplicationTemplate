@@ -2,8 +2,10 @@ using System.Text;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using MySqlConnector;
 using NLog.Web;
 using WebApplicationTemplate.ActionFilter;
 using WebApplicationTemplate.AppDB;
@@ -24,7 +26,9 @@ if (string.IsNullOrEmpty(dbconfig))
     return;
 }
 
-builder.Services.AddTransient<AppDB>(sp => new(dbconfig));
+builder.Services.AddTransient<MySqlConnection>(x =>
+    new(builder.Configuration.GetConnectionString("MariaDbConnectionString")));
+//builder.Services.AddTransient<AppDB>(sp => new(dbconfig));
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -43,6 +47,7 @@ builder.Services.AddSwaggerGen(c =>
     c.AddSecurityRequirement(requirement);
 });
 builder.Services.AddMemoryCache();
+builder.Services.Configure<DBDataBase>(builder.Configuration.GetSection("DBSetting:DBTables"));
 builder.Services.Configure<JWTSettings>(builder.Configuration.GetSection("JWT"));
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(opt =>
 {

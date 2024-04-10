@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using MySqlConnector;
 using WebApplicationTemplate.ActionFilter;
 using WebApplicationTemplate.AppDB;
 using WebApplicationTemplate.Entity;
@@ -23,13 +24,15 @@ public class UserController : Controller
     private readonly ILogger<UserController> _logger;
     private AppDB.AppDB Db { get; }
     private readonly IOptionsSnapshot<JWTSettings> jwtsettingOpt;
-    public UserController(AppDB.AppDB db, IOptionsSnapshot<JWTSettings> jwtsettingOpt, ILogger<UserController> logger, IConfiguration config, IMemoryCache memoryCache)
+    private readonly IOptionsSnapshot<DBDataBase> dbDataBaseOpt;
+    public UserController(AppDB.AppDB db, IOptionsSnapshot<JWTSettings> jwtsettingOpt, ILogger<UserController> logger, IConfiguration config, IMemoryCache memoryCache, IOptionsSnapshot<DBDataBase> dbDataBaseOpt)
     {
         Db = db;
         this.jwtsettingOpt = jwtsettingOpt;
         _logger = logger;
         _config = config;
         _memoryCache = memoryCache;
+        this.dbDataBaseOpt = dbDataBaseOpt;
     }
 
     [HttpPost]
@@ -84,18 +87,6 @@ public class UserController : Controller
         var tokenDescriptor = new JwtSecurityToken(claims: result, expires: expire, signingCredentials: credentials);
         string jwt = new JwtSecurityTokenHandler().WriteToken(tokenDescriptor);
         _logger.LogDebug($"{result[1].Value}授权管理员成功");
-        //await Db.Connection.ExecuteScalarAsync<User>(
-        //    $"INSERT INTO user SET UserName = @UserName,Password = @Password", new
-        //    {
-        //        UserName = "Test1",
-        //        Password = "114514"
-        //    });
-        //await Db.Connection.ExecuteScalarAsync<User>(
-        //    $"INSERT INTO user SET UserName = @UserName,Password = @Password", new
-        //    {
-        //        UserName = "Test222",
-        //        Password = "114514"
-        //    });
         return Ok(jwt);
     }
 
@@ -111,15 +102,14 @@ public class UserController : Controller
     }
 
     [HttpPost]
-    [Authorize(Roles = "admin")]
+    //[Authorize(Roles = "admin")]
     public async Task<ActionResult> CreateTable()
     {
         if (!_config.GetValue("DBSetting:Init", false))
         {
             return BadRequest("数据库初始化已被禁用");
         }
-        Query query = new(Db);
-        var result = await query.CreateTable<User>("user");
+        var result = await Db.Connection.CreateTable<User>("dbDataBaseOpt.Value.UserTable");
         if (!result)
             return BadRequest("failed");
         return Ok(result);
