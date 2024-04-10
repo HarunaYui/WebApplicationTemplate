@@ -1,5 +1,6 @@
 ﻿using Dapper;
 using Dapper.Contrib.Extensions;
+using WebApplicationTemplate.AppDB.Extensions;
 
 namespace WebApplicationTemplate.AppDB;
 public class Query(AppDB db)
@@ -24,22 +25,26 @@ public class Query(AppDB db)
         var properties = typeof(T).GetProperties().Select(c =>
         {
             var key = c.GetCustomAttributes(typeof(KeyAttribute), false).FirstOrDefault();
+            var _size = c.GetCustomAttributes(typeof(SizeAttribute), false).FirstOrDefault();
+            var size = _size == null ? 255 : ((SizeAttribute)_size).Size;
             if (key != null)
                 return $"`{c.Name}` {Methods.GetSqlType(c.PropertyType)} NOT NULL PRIMARY KEY AUTO_INCREMENT";
             if (c.Name == _defaultId)
                 return $"`{c.Name}` {Methods.GetSqlType(c.PropertyType)} NOT NULL PRIMARY KEY AUTO_INCREMENT";
             else
-                return $"`{c.Name}` {Methods.GetSqlType(c.PropertyType)} DEFAULT {Methods.GetSqlDefault(c.PropertyType)}";
+                return $"`{c.Name}` {Methods.GetSqlType(c.PropertyType, size)} DEFAULT {Methods.GetSqlDefault(c.PropertyType)}";
         });
         var fields = typeof(T).GetFields().Select(c =>
         {
             var key = c.GetCustomAttributes(typeof(KeyAttribute), false).FirstOrDefault();
+            var _size = c.GetCustomAttributes(typeof(SizeAttribute), false).FirstOrDefault();
+            var size = _size == null ? 255 : ((SizeAttribute)_size).Size;
             if (key != null)
                 return $"`{c.Name}` {Methods.GetSqlType(c.FieldType)} NOT NULL PRIMARY KEY AUTO_INCREMENT";
             if (c.Name == _defaultId)
                 return $"`{c.Name}` {Methods.GetSqlType(c.FieldType)} NOT NULL PRIMARY KEY AUTO_INCREMENT";
             else
-                return $"`{c.Name}` {Methods.GetSqlType(c.FieldType)} DEFAULT {Methods.GetSqlDefault(c.FieldType)}";
+                return $"`{c.Name}` {Methods.GetSqlType(c.FieldType, size)} DEFAULT {Methods.GetSqlDefault(c.FieldType)}";
         });
         var all = properties.Concat(fields).ToList();
         await Db.Connection.ExecuteAsync($"CREATE TABLE IF NOT EXISTS `{table}` ({string.Join(", ", all)})");
