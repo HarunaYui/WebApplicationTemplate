@@ -109,7 +109,7 @@ public class UserController : Controller
         {
             return BadRequest("数据库初始化已被禁用");
         }
-        var result = await Db.Connection.CreateTable<User>("dbDataBaseOpt.Value.UserTable");
+        var result = await Db.Connection.CreateTable<User>(dbDataBaseOpt.Value.UserTable);
         if (!result)
             return BadRequest("failed");
         return Ok(result);
