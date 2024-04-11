@@ -1,12 +1,9 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
+﻿using System.Security.Claims;
 using Dapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
 using MySqlConnector;
 using WebApplicationTemplate.ActionFilter;
 using WebApplicationTemplate.AppDB;
@@ -14,6 +11,10 @@ using WebApplicationTemplate.Entity;
 using WebApplicationTemplate.JWT;
 
 namespace WebApplicationTemplate.Controllers;
+
+/// <summary>
+/// 用户控制器
+/// </summary>
 [Route("api/[controller]/[action]")]
 [ApiController]
 [Authorize]
@@ -22,28 +23,43 @@ public class UserController : Controller
     private readonly IMemoryCache _memoryCache;
     private readonly IConfiguration _config;
     private readonly ILogger<UserController> _logger;
-    private AppDB.AppDB Db { get; }
-    private readonly IOptionsSnapshot<JWTSettings> jwtsettingOpt;
-    private readonly IOptionsSnapshot<DBDataBase> dbDataBaseOpt;
-    public UserController(AppDB.AppDB db, IOptionsSnapshot<JWTSettings> jwtsettingOpt, ILogger<UserController> logger, IConfiguration config, IMemoryCache memoryCache, IOptionsSnapshot<DBDataBase> dbDataBaseOpt)
+    private readonly IOptionsSnapshot<JwtSettings> _jwtsettingOpt;
+    private readonly IOptionsSnapshot<DBDataBase> _dbDataBaseOpt;
+    private readonly MySqlConnection _connection;
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    /// <param name="jwtsettingOpt"></param>
+    /// <param name="logger"></param>
+    /// <param name="config"></param>
+    /// <param name="memoryCache"></param>
+    /// <param name="dbDataBaseOpt"></param>
+    /// <param name="cnn"></param>
+    public UserController(IOptionsSnapshot<JwtSettings> jwtsettingOpt, ILogger<UserController> logger, IConfiguration config, IMemoryCache memoryCache, IOptionsSnapshot<DBDataBase> dbDataBaseOpt, MySqlConnection cnn)
     {
-        Db = db;
-        this.jwtsettingOpt = jwtsettingOpt;
+        _jwtsettingOpt = jwtsettingOpt;
         _logger = logger;
         _config = config;
         _memoryCache = memoryCache;
-        this.dbDataBaseOpt = dbDataBaseOpt;
+        _dbDataBaseOpt = dbDataBaseOpt;
+        _connection = cnn;
     }
 
+    /// <summary>
+    /// 用户登录
+    /// </summary>
+    /// <param name="userName"></param>
+    /// <param name="passWord"></param>
+    /// <returns></returns>
     [HttpPost]
     [AllowAnonymous]
     [NotTransaction]
-    public async Task<ActionResult> UserLogin(string userName, string passWord)
+    public async Task<ActionResult<string>> UserLogin(string userName, string passWord)
     {
         if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(passWord))
             return BadRequest("Inputdata is Null");
         var userSearchResult =
-            await Db.Connection.QueryFirstOrDefaultAsync<User>($"SELECT * FROM user WHERE UserName = @UserName",
+            await _connection.QueryFirstOrDefaultAsync<User>($"SELECT * FROM user WHERE UserName = @UserName",
                 new { UserName = userName });
         if (userSearchResult == null)
             return NotFound("Not this User");
@@ -58,20 +74,19 @@ public class UserController : Controller
                 new(ClaimTypes.Name, userSearchResult.UserName),
                 new(ClaimTypes.Role, "user")
             };
-            string? key = jwtsettingOpt.Value.SecrectKey;
-            DateTime expire = DateTime.Now.AddSeconds(jwtsettingOpt.Value.ExpireSeconds);
-            byte[] secBytes = Encoding.UTF8.GetBytes(key);
-            var secKey = new SymmetricSecurityKey(secBytes);
-            var credentials = new SigningCredentials(secKey, SecurityAlgorithms.HmacSha256Signature);
-            var tokenDescriptor =
-                new JwtSecurityToken(claims: claims, expires: expire, signingCredentials: credentials);
-            string jwt = new JwtSecurityTokenHandler().WriteToken(tokenDescriptor);
+            string? key = _jwtsettingOpt.Value.SecrectKey;
+            DateTime expire = DateTime.Now.AddSeconds(_jwtsettingOpt.Value.ExpireSeconds);
+            string jwt = JwtHelper.JwtCreate(claims,key,expire);
             _logger.LogDebug($"{userSearchResult.UserName}登陆成功");
             return jwt;
         });
         return Ok(jwt);
     }
 
+    /// <summary>
+    /// 添加管理员
+    /// </summary>
+    /// <returns></returns>
     [HttpPost]
     [Authorize(Roles = "admin")]
     [NotRateTransaction]
@@ -79,39 +94,46 @@ public class UserController : Controller
     {
         var result = User.Claims.ToList();
         result.Add(new(ClaimTypes.Role, "admin"));
-        string? key = jwtsettingOpt.Value.SecrectKey;
-        DateTime expire = DateTime.Now.AddSeconds(jwtsettingOpt.Value.ExpireSeconds);
-        byte[] secBytes = Encoding.UTF8.GetBytes(key);
-        var secKey = new SymmetricSecurityKey(secBytes);
-        var credentials = new SigningCredentials(secKey, SecurityAlgorithms.HmacSha256Signature);
-        var tokenDescriptor = new JwtSecurityToken(claims: result, expires: expire, signingCredentials: credentials);
-        string jwt = new JwtSecurityTokenHandler().WriteToken(tokenDescriptor);
+        string? key = _jwtsettingOpt.Value.SecrectKey;
+        DateTime expire = DateTime.Now.AddSeconds(_jwtsettingOpt.Value.ExpireSeconds);
+        string jwt = JwtHelper.JwtCreate(result, key, expire);
         _logger.LogDebug($"{result[1].Value}授权管理员成功");
         return Ok(jwt);
     }
 
+    /// <summary>
+    /// 显示jwt
+    /// </summary>
+    /// <returns></returns>
     [HttpPost]
     [Authorize(Roles = "admin")]
-    public ActionResult ShowJwtMessage()
+    public ActionResult<Claim> ShowJwtMessage()
     {
         string id = User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
         string userName = User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
         IEnumerable<Claim> roleClaims = User.FindAll(ClaimTypes.Role);
         string roleNames = string.Join(',', roleClaims.Select(x => x.Value));
+        _logger.LogDebug($"{userName}查询了jwt信息");
         return Ok(new { ID = id, UserName = userName, roleNames = roleNames });
     }
 
+    /// <summary>
+    /// 初始化数据库
+    /// </summary>
+    /// <returns></returns>
     [HttpPost]
-    //[Authorize(Roles = "admin")]
-    public async Task<ActionResult> CreateTable()
+    [Authorize(Roles = "admin")]
+    public async Task<ActionResult> TableInit()
     {
         if (!_config.GetValue("DBSetting:Init", false))
         {
             return BadRequest("数据库初始化已被禁用");
         }
-        var result = await Db.Connection.CreateTable<User>(dbDataBaseOpt.Value.UserTable);
+        var result = await _connection.CreateTable<User>(_dbDataBaseOpt.Value.UserTable);
         if (!result)
             return BadRequest("failed");
+        string userName = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+        _logger.LogDebug($"{userName}创建了数据库");
         return Ok(result);
     }
 }

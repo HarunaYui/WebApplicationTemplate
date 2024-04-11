@@ -1,6 +1,10 @@
 ﻿using System.Data;
 
 namespace WebApplicationTemplate.AppDB;
+
+/// <summary>
+/// 数据库类型转换
+/// </summary>
 public static class Methods
 {
     /// <summary>

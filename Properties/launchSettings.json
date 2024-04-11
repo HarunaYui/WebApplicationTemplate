@@ -19,7 +19,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "https": {
+    "WebTemplate": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,

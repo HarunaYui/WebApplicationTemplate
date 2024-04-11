@@ -5,6 +5,10 @@ using MySqlConnector;
 using WebApplicationTemplate.AppDB.Extensions;
 
 namespace WebApplicationTemplate.AppDB;
+
+/// <summary>
+/// 封装数据库操作
+/// </summary>
 public static class Query
 {
     /// <summary>

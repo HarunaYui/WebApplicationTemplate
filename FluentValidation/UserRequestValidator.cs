@@ -1,23 +1,35 @@
 ﻿using Dapper;
 using FluentValidation;
+using MySqlConnector;
 using WebApplicationTemplate.Entity;
 
 namespace WebApplicationTemplate.FluentValidation;
 
+/// <summary>
+/// 用户数据验证
+/// </summary>
 public class UserRequestValidator: AbstractValidator<User>
 {
-    private AppDB.AppDB Db { get; }
+    private readonly MySqlConnection? _connection;
 
-    public UserRequestValidator(AppDB.AppDB db)
+    /// <summary>
+    /// 构造注入数据库
+    /// </summary>
+    /// <param name="connection"></param>
+    public UserRequestValidator(MySqlConnection connection)
     {
-        this.Db = db;
+        _connection = connection;
     }
+
+    /// <summary>
+    /// 数据验证
+    /// </summary>
     public UserRequestValidator()
     {
         RuleFor(r => r.UserName).NotEmpty().WithMessage("名字不能为空");
         RuleFor(r => r.Email).NotEmpty().EmailAddress().MustAsync(async (x,_) =>
         {
-            var result = await Db.Connection.QueryFirstOrDefaultAsync<User>($"SELECT * FROM user WHERE Email = @Email", new { Email = x });
+            var result = await _connection.QueryFirstOrDefaultAsync<User>($"SELECT * FROM user WHERE Email = @Email", new { Email = x });
             if (result is null)
             {
                 return false;

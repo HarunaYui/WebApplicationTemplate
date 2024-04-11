@@ -1,14 +1,13 @@
+using System.Reflection;
 using System.Text;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MySqlConnector;
 using NLog.Web;
 using WebApplicationTemplate.ActionFilter;
-using WebApplicationTemplate.AppDB;
 using WebApplicationTemplate.Entity;
 using WebApplicationTemplate.FluentValidation;
 using WebApplicationTemplate.JWT;
@@ -38,20 +37,32 @@ builder.Services.AddSwaggerGen(c =>
     {
         Description = "Authorization header.\r\nExample:'Bearer xxxxx'",
         Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Authorization" },
-        Scheme = "oauth2", Name = "Authorization",
-        In = ParameterLocation.Header, Type = SecuritySchemeType.ApiKey,
+        Scheme = "oauth2",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey,
     };
-    c.AddSecurityDefinition("Authorization",scheme);
+    c.AddSecurityDefinition("Authorization", scheme);
     var requirement = new OpenApiSecurityRequirement();
     requirement[scheme] = new List<string>();
     c.AddSecurityRequirement(requirement);
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Template",
+        Version = "v1",
+        Description = "WebApi Template",
+    });
+    var xmlFile = Path.Combine(AppContext.BaseDirectory, "WebTemplate.xml");
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    c.IncludeXmlComments(xmlPath, true);
+    c.OrderActionsBy(o => o.RelativePath);
 });
 builder.Services.AddMemoryCache();
 builder.Services.Configure<DBDataBase>(builder.Configuration.GetSection("DBSetting:DBTables"));
-builder.Services.Configure<JWTSettings>(builder.Configuration.GetSection("JWT"));
+builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JWT"));
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(opt =>
 {
-    var jwtopt = builder.Configuration.GetSection("JWT").Get<JWTSettings>();
+    var jwtopt = builder.Configuration.GetSection("JWT").Get<JwtSettings>();
     byte[] keyBytes = Encoding.UTF8.GetBytes(jwtopt.SecrectKey);
     var secKey = new SymmetricSecurityKey(keyBytes);
     opt.TokenValidationParameters = new()
@@ -86,7 +97,11 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment() || config.GetValue("Swagger:Enable", false))
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.DocumentTitle = "WepApi模板";
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "用户模块");
+    });
 }
 
 app.UseHttpsRedirection();

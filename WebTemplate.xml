@@ -1,0 +1,132 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>WebApplicationTemplate</name>
+    </assembly>
+    <members>
+        <member name="F:WebApplicationTemplate.AppDB.Methods.defaultId">
+            <summary>
+            默认表的主键名
+            </summary>
+        </member>
+        <member name="M:WebApplicationTemplate.AppDB.Methods.TypeToDbType(System.Type)">
+            <summary>
+            根据类型获取对应的 DbType
+            </summary>
+            <param name="type"></param>
+            <returns></returns>
+        </member>
+        <member name="M:WebApplicationTemplate.AppDB.Methods.GetSqlType(System.Type,System.Int32)">
+            <summary>
+            获取类型
+            </summary>
+            <param name="type"></param>
+            <param name="Size"></param>
+            <returns></returns>
+        </member>
+        <member name="M:WebApplicationTemplate.AppDB.Methods.GetSqlType(System.Type)">
+            <summary>
+            获取类型
+            </summary>
+            <param name="type"></param>
+            <returns></returns>
+        </member>
+        <member name="M:WebApplicationTemplate.AppDB.Methods.GetSqlDefault(System.Type)">
+            <summary>
+            获取类型默认值
+            </summary>
+            <param name="type"></param>
+            <returns></returns>
+        </member>
+        <member name="M:WebApplicationTemplate.AppDB.Query.SqlSelect``1(MySqlConnector.MySqlConnection,System.String)">
+            <summary>
+            查询表全部数据
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="cnn"></param>
+            <param name="table"></param>
+            <returns></returns>
+        </member>
+        <member name="M:WebApplicationTemplate.AppDB.Query.SqlCountSelect``1(MySqlConnector.MySqlConnection,System.String)">
+            <summary>
+            查询总数
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="cnn"></param>
+            <param name="table"></param>
+            <returns></returns>
+        </member>
+        <member name="M:WebApplicationTemplate.AppDB.Query.SqlSelectWhereSingle``1(MySqlConnector.MySqlConnection,System.String,System.String,System.String)">
+            <summary>
+            带条件查询单个数据
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="cnn"></param>
+            <param name="table"></param>
+            <param name="column"></param>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
+        <member name="M:WebApplicationTemplate.AppDB.Query.CheckTable(MySqlConnector.MySqlConnection,System.String)">
+            <summary>
+            检查表
+            </summary>
+            <param name="cnn"></param>
+            <param name="table"></param>
+            <returns></returns>
+        </member>
+        <member name="M:WebApplicationTemplate.AppDB.Query.CreateTable``1(MySqlConnector.MySqlConnection,System.String,System.String)">
+            <summary>
+            创建表
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="cnn"></param>
+            <param name="table"></param>
+            <param name="defaultId"></param>
+            <returns></returns>
+            <exception cref="T:System.ArgumentNullException"></exception>
+        </member>
+        <member name="T:WebApplicationTemplate.Controllers.UserController">
+            <summary>
+            用户控制器
+            </summary>
+        </member>
+        <member name="M:WebApplicationTemplate.Controllers.UserController.#ctor(Microsoft.Extensions.Options.IOptionsSnapshot{WebApplicationTemplate.JWT.JWTSettings},Microsoft.Extensions.Logging.ILogger{WebApplicationTemplate.Controllers.UserController},Microsoft.Extensions.Configuration.IConfiguration,Microsoft.Extensions.Caching.Memory.IMemoryCache,Microsoft.Extensions.Options.IOptionsSnapshot{WebApplicationTemplate.Entity.DBDataBase},MySqlConnector.MySqlConnection)">
+            <summary>
+            构造函数
+            </summary>
+            <param name="jwtsettingOpt"></param>
+            <param name="logger"></param>
+            <param name="config"></param>
+            <param name="memoryCache"></param>
+            <param name="dbDataBaseOpt"></param>
+            <param name="cnn"></param>
+        </member>
+        <member name="M:WebApplicationTemplate.Controllers.UserController.UserLogin(System.String,System.String)">
+            <summary>
+            用户登录
+            </summary>
+            <param name="userName"></param>
+            <param name="passWord"></param>
+            <returns></returns>
+        </member>
+        <member name="M:WebApplicationTemplate.Controllers.UserController.AddAdmin">
+            <summary>
+            添加管理员
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:WebApplicationTemplate.Controllers.UserController.ShowJwtMessage">
+            <summary>
+            显示jwt
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:WebApplicationTemplate.Controllers.UserController.TableInit">
+            <summary>
+            初始化数据库
+            </summary>
+            <returns></returns>
+        </member>
+    </members>
+</doc>

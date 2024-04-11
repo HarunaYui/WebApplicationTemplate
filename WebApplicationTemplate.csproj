@@ -4,6 +4,8 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <DocumentationFile>F:\VS Test\TestWebApplication\WebTemplate.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
