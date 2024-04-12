@@ -1,11 +1,12 @@
 ﻿using Dapper.Contrib.Extensions;
-using Microsoft.AspNetCore.Identity;
+using WebApplicationTemplate.Model.Enums;
 
-namespace WebApplicationTemplate.Entity;
+namespace WebApplicationTemplate.Model.Entity;
 
 /// <summary>
 /// 用户表
 /// </summary>
+[Table("user")]
 public class User
 {
     /// <summary>
@@ -28,5 +29,10 @@ public class User
     /// 邮箱
     /// </summary>
     public string Email { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 用户身份
+    /// </summary>
+    public UserRole Role { get; set; } = UserRole.用户;
 }
 

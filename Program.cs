@@ -8,9 +8,9 @@ using Microsoft.OpenApi.Models;
 using MySqlConnector;
 using NLog.Web;
 using WebApplicationTemplate.ActionFilter;
-using WebApplicationTemplate.Entity;
-using WebApplicationTemplate.FluentValidation;
 using WebApplicationTemplate.JWT;
+using WebApplicationTemplate.Model.Entity;
+using WebApplicationTemplate.Model.From;
 using WebApplicationTemplate.MyHub;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -90,7 +90,7 @@ builder.Services.AddSignalR();
 builder.Logging.ClearProviders();
 builder.Host.UseNLog();
 builder.Services.AddSingleton(config);
-builder.Services.AddScoped<IValidator<User>, UserRequestValidator>();
+builder.Services.AddScoped<IValidator<UserRegister>, UserRegisterValidator>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

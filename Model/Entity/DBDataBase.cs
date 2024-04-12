@@ -1,4 +1,4 @@
-﻿namespace WebApplicationTemplate.Entity;
+﻿namespace WebApplicationTemplate.Model.Entity;
 
 /// <summary>
 /// 数据库映射表

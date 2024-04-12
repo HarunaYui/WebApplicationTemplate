@@ -42,24 +42,6 @@ public static class Query
     }
 
     /// <summary>
-    /// 带条件查询单个数据
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="cnn"></param>
-    /// <param name="table"></param>
-    /// <param name="column"></param>
-    /// <param name="value"></param>
-    /// <returns></returns>
-    public static async Task<T?> SqlSelectWhereSingle<T>(this MySqlConnection cnn, string table, string column, string value)
-        where T : class
-    {
-        await cnn.OpenAsync();
-        var result = await cnn.QueryFirstOrDefaultAsync<T>($"SELECT * FROM '{table}'WHERE '{column}' = '@{value}'",new{column = value});
-        await cnn.CloseAsync();
-        return result;
-    }
-
-    /// <summary>
     /// 检查表
     /// </summary>
     /// <param name="cnn"></param>

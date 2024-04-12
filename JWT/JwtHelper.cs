@@ -27,5 +27,12 @@ public class JwtHelper
         string jwt = new JwtSecurityTokenHandler().WriteToken(tokenDescriptor);
         return jwt;
     }
+
+    public static string JwtAddAdmin(List<Claim> claims, string key, DateTime expire)
+    {
+        claims.Add(new(ClaimTypes.Role, "admin"));
+        var result = JwtCreate(claims, key, expire);
+        return result;
+    }
 }
 

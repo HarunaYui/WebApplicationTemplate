@@ -1,5 +1,7 @@
 ﻿using System.Security.Claims;
 using Dapper;
+using Dapper.Contrib.Extensions;
+using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
@@ -7,8 +9,10 @@ using Microsoft.Extensions.Options;
 using MySqlConnector;
 using WebApplicationTemplate.ActionFilter;
 using WebApplicationTemplate.AppDB;
-using WebApplicationTemplate.Entity;
 using WebApplicationTemplate.JWT;
+using WebApplicationTemplate.Model.Entity;
+using WebApplicationTemplate.Model.Enums;
+using WebApplicationTemplate.Model.From;
 
 namespace WebApplicationTemplate.Controllers;
 
@@ -48,39 +52,100 @@ public class UserController : Controller
     /// <summary>
     /// 用户登录
     /// </summary>
-    /// <param name="userName"></param>
-    /// <param name="passWord"></param>
+    /// <param name="userRegister"></param>
+    /// <param name="userRegisterOpt"></param>
     /// <returns></returns>
     [HttpPost]
     [AllowAnonymous]
-    [NotTransaction]
-    public async Task<ActionResult<string>> UserLogin(string userName, string passWord)
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(bool))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(string))]
+    public async Task<IActionResult> UserLogin([FromBody]UserRegister userRegister, [FromServices] IValidator<UserRegister> userRegisterOpt)
     {
-        if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(passWord))
-            return BadRequest("Inputdata is Null");
+        var validateresult = await userRegisterOpt.ValidateAsync(userRegister);
+        if (!validateresult.IsValid)
+            return BadRequest(validateresult.ToString());
         var userSearchResult =
             await _connection.QueryFirstOrDefaultAsync<User>($"SELECT * FROM user WHERE UserName = @UserName",
-                new { UserName = userName });
+                new { UserName = userRegister.UserName });
         if (userSearchResult == null)
             return NotFound("Not this User");
-        if (userSearchResult.Password != passWord)
+        if (userSearchResult.Password != userRegister.PassWord)
             return BadRequest("Error PassWord");
         var jwt = _memoryCache.GetOrCreate($"ID:{userSearchResult.ID}", (e) =>
         {
             e.AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(7);
-            var claims = new List<Claim>
+            if (userSearchResult.Role == UserRole.用户)
             {
-                new(ClaimTypes.NameIdentifier, userSearchResult.ID.ToString()),
-                new(ClaimTypes.Name, userSearchResult.UserName),
-                new(ClaimTypes.Role, "user")
-            };
-            string? key = _jwtsettingOpt.Value.SecrectKey;
-            DateTime expire = DateTime.Now.AddSeconds(_jwtsettingOpt.Value.ExpireSeconds);
-            string jwt = JwtHelper.JwtCreate(claims,key,expire);
-            _logger.LogDebug($"{userSearchResult.UserName}登陆成功");
-            return jwt;
+                var claims = new List<Claim>
+                {
+                    new(ClaimTypes.NameIdentifier, userSearchResult.ID.ToString()),
+                    new(ClaimTypes.Name, userSearchResult.UserName),
+                    new(ClaimTypes.Role, "user")
+                };
+                string? key = _jwtsettingOpt.Value.SecrectKey;
+                DateTime expire = DateTime.Now.AddSeconds(_jwtsettingOpt.Value.ExpireSeconds);
+                string jwt = JwtHelper.JwtCreate(claims, key, expire);
+                _logger.LogDebug($"{userSearchResult.UserName}登陆成功");
+                return jwt;
+            }
+            else
+            {
+                var claims = new List<Claim>
+                {
+                    new(ClaimTypes.NameIdentifier, userSearchResult.ID.ToString()),
+                    new(ClaimTypes.Name, userSearchResult.UserName),
+                    new(ClaimTypes.Role, "user"),
+                    new(ClaimTypes.Role, "admin")
+                };
+                string? key = _jwtsettingOpt.Value.SecrectKey;
+                DateTime expire = DateTime.Now.AddSeconds(_jwtsettingOpt.Value.ExpireSeconds);
+                string jwt = JwtHelper.JwtCreate(claims, key, expire);
+                _logger.LogDebug($"{userSearchResult.UserName}登陆成功");
+                return jwt;
+            }
         });
         return Ok(jwt);
+    }
+
+    /// <summary>
+    /// 用户注册
+    /// </summary>
+    /// <param name="userRegister"></param>
+    /// <param name="userRegisterOpt"></param>
+    /// <returns></returns>
+    [HttpPost]
+    [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK,Type = typeof(bool))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(string))]
+    public async Task<IActionResult> RegisterUser([FromBody] UserRegister userRegister, [FromServices] IValidator<UserRegister> userRegisterOpt)
+    {
+        var validateresult = await userRegisterOpt.ValidateAsync(userRegister);
+        if (!validateresult.IsValid)
+            return BadRequest(validateresult.ToString());
+        bool userExist =( await _connection.GetAsync<User>(userRegister.UserName)) is null;
+        if (!userExist)
+            return BadRequest("用户已存在");
+        var result = (await _connection.InsertAsync(new User
+        {
+            UserName = userRegister.UserName,
+            Password = userRegister.PassWord
+        }))>= 0;
+        if (!result)
+            return BadRequest("注册失败");
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// 获取所有用户信息
+    /// </summary>
+    /// <returns></returns>
+    [HttpGet]
+    [Authorize(Roles = "admin")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<User>))]
+    public async Task<IActionResult> GetAllUser()
+    {
+        var users = (await _connection.GetAllAsync<User>()).ToList();
+        return Ok(users);
     }
 
     /// <summary>
@@ -90,15 +155,15 @@ public class UserController : Controller
     [HttpPost]
     [Authorize(Roles = "admin")]
     [NotRateTransaction]
-    public ActionResult AddAdmin()
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(string))]
+    public IActionResult AddAdmin()
     {
-        var result = User.Claims.ToList();
-        result.Add(new(ClaimTypes.Role, "admin"));
+        var userclaims = User.Claims.ToList();
         string? key = _jwtsettingOpt.Value.SecrectKey;
         DateTime expire = DateTime.Now.AddSeconds(_jwtsettingOpt.Value.ExpireSeconds);
-        string jwt = JwtHelper.JwtCreate(result, key, expire);
-        _logger.LogDebug($"{result[1].Value}授权管理员成功");
-        return Ok(jwt);
+        var result = JwtHelper.JwtAddAdmin(userclaims, key, expire);
+        _logger.LogDebug($"{userclaims[1].Value}授权管理员成功");
+        return Ok(result);
     }
 
     /// <summary>
@@ -107,7 +172,8 @@ public class UserController : Controller
     /// <returns></returns>
     [HttpPost]
     [Authorize(Roles = "admin")]
-    public ActionResult<Claim> ShowJwtMessage()
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<>))]
+    public IActionResult ShowJwtMessage()
     {
         string id = User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
         string userName = User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
@@ -122,7 +188,11 @@ public class UserController : Controller
     /// </summary>
     /// <returns></returns>
     [HttpPost]
-    [Authorize(Roles = "admin")]
+    //[Authorize(Roles = "admin")]
+    [AllowAnonymous]
+    [NotTransaction]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(bool))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(string))]
     public async Task<ActionResult> TableInit()
     {
         if (!_config.GetValue("DBSetting:Init", false))
