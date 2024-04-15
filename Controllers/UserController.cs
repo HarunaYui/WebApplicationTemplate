@@ -66,11 +66,11 @@ public class UserController : Controller
             return BadRequest(validateresult.ToString());
         var userSearchResult =
             await _connection.QueryFirstOrDefaultAsync<User>($"SELECT * FROM user WHERE UserName = @UserName",
-                new { UserName = userRegister.UserName });
+                new {  userRegister.UserName });
         if (userSearchResult == null)
-            return NotFound("Not this User");
+            return NotFound("为查询到用户");
         if (userSearchResult.Password != userRegister.PassWord)
-            return BadRequest("Error PassWord");
+            return BadRequest("密码错误");
         var jwt = _memoryCache.GetOrCreate($"ID:{userSearchResult.ID}", (e) =>
         {
             e.AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(7);

@@ -30,7 +30,7 @@ public class UserRegisterValidator : AbstractValidator<UserRegister>
     public UserRegisterValidator()
     {
         RuleFor(r => r.UserName).NotEmpty().WithMessage("名字不能为空");
-        RuleFor(r => r.PassWord).NotEmpty().MustAsync(async (x, _) => x.Length >= 8).WithMessage("长度不能小于8");
+        RuleFor(r => r.PassWord).NotEmpty().Must( x => x.Length >= 8).WithMessage("长度不能小于8");
     }
 }
 
