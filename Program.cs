@@ -18,12 +18,12 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 var config = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
-var dbconfig = config["ConnectionStrings:MariaDbConnectionString"];
-if (string.IsNullOrEmpty(dbconfig))
-{
-    Console.WriteLine("db null");
-    return;
-}
+//var dbconfig = config["ConnectionStrings:MariaDbConnectionString"];
+//if (string.IsNullOrEmpty(dbconfig))
+//{
+//    Console.WriteLine("db null");
+//    return;
+//}
 
 builder.Services.AddTransient<MySqlConnection>(x =>
     new(builder.Configuration.GetConnectionString("MariaDbConnectionString")));
