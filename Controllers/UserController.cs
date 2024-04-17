@@ -10,6 +10,7 @@ using MySqlConnector;
 using WebApplicationTemplate.ActionFilter;
 using WebApplicationTemplate.AppDB;
 using WebApplicationTemplate.JWT;
+using WebApplicationTemplate.Model;
 using WebApplicationTemplate.Model.Entity;
 using WebApplicationTemplate.Model.Enums;
 using WebApplicationTemplate.Model.From;
@@ -125,10 +126,13 @@ public class UserController : Controller
         bool userExist =( await _connection.GetAsync<User>(userRegister.UserName)) is null;
         if (!userExist)
             return BadRequest("用户已存在");
+        string salt = UserPasswordSet.CreateSalt(userRegister.UserName);
+        string password = UserPasswordSet.SaltedPassword(userRegister.PassWord, salt);
         var result = (await _connection.InsertAsync(new User
         {
             UserName = userRegister.UserName,
-            Password = userRegister.PassWord
+            Password = password,
+            Salt = salt
         }))>= 0;
         if (!result)
             return BadRequest("注册失败");

@@ -26,6 +26,11 @@ public class User
     public string Password { get; set; } = string.Empty;
 
     /// <summary>
+    /// 密码用加密盐
+    /// </summary>
+    public string Salt { get; set; } = string.Empty;
+
+    /// <summary>
     /// 邮箱
     /// </summary>
     public string Email { get; set; } = string.Empty;
