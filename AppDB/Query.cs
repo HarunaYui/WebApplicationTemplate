@@ -1,4 +1,8 @@
-﻿using Dapper;
+﻿using System.Data;
+using System.Drawing;
+using System.Formats.Tar;
+using System.Reflection.Metadata.Ecma335;
+using Dapper;
 using Dapper.Contrib.Extensions;
 using Microsoft.AspNetCore.Mvc.Diagnostics;
 using MySqlConnector;
@@ -11,6 +15,29 @@ namespace WebApplicationTemplate.AppDB;
 /// </summary>
 public static class Query
 {
+
+    public static async Task<bool> SqlUpdate<T>(this MySqlConnection cnn,T t,string Id,bool defaultId = false) where T : new()
+    {
+        if (defaultId)
+            Id = "ID";
+        await cnn.OpenAsync();
+        Type type = typeof(T);
+        await using MySqlCommand command = new();
+        command.Connection = cnn;
+        command.CommandText = $"UPDATE {type.GetCustomAttributes(typeof(TableAttribute),false).FirstOrDefault()} SET {string.Join(',', type.GetProperties().Where(c=>!c.Name.Equals("ID")).Select(c=> $"{c}=@{c}"))} WHERE {Id.Replace($"{Id}",$"{Id}=@{Id}")}";
+        var parameters = typeof(T).GetProperties().Select(c => new MySqlParameter()
+        {
+            ParameterName = $"@{c.Name}",
+            Value = $"{c.GetValue(t)}",
+            MySqlDbType = Methods.GetSqlTypeDefault(c.PropertyType)
+        }).ToArray();
+        command.CommandType = CommandType.Text;
+        command.Parameters.AddRange(parameters);
+        var result = await command.ExecuteNonQueryAsync() > 0;
+        await cnn.CloseAsync();
+        return result;
+    }
+
     /// <summary>
     /// 查询表全部数据
     /// </summary>

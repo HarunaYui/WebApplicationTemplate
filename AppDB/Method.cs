@@ -1,4 +1,5 @@
 ﻿using System.Data;
+using MySqlConnector;
 
 namespace WebApplicationTemplate.AppDB;
 
@@ -130,6 +131,39 @@ public static class Methods
                         return "0";
                     return "''";
                 }
+        }
+    }
+
+    public static MySqlDbType GetSqlTypeDefault(Type type)
+    {
+        switch (type.Name)
+        {
+            case "String":
+                return MySqlDbType.VarChar;
+            case "Int32":
+                return MySqlDbType.Int32;
+            case "Int64":
+                return MySqlDbType.Int64;
+            case "Boolean":
+                return MySqlDbType.Bool;
+            case "DateTime":
+                return MySqlDbType.DateTime;
+            case "Single":
+                return MySqlDbType.Float;
+            case "Double":
+                return MySqlDbType.Double;
+            case "Byte[]":
+                return MySqlDbType.Blob;
+            case "Decimal":
+                return MySqlDbType.Decimal;
+            case "Guid":
+                return MySqlDbType.Guid;
+            default:
+            {
+                if (type.IsEnum)
+                    return MySqlDbType.Int32;
+                return MySqlDbType.VarChar;
+            }
         }
     }
 }
