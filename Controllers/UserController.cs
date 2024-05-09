@@ -69,7 +69,7 @@ public class UserController : Controller
             await _connection.QueryFirstOrDefaultAsync<User>($"SELECT * FROM user WHERE UserName = @UserName",
                 new {  userRegister.UserName });
         if (userSearchResult == null)
-            return NotFound("为查询到用户");
+            return NotFound("未查询到用户");
         if (userSearchResult.Password != userRegister.PassWord)
             return BadRequest("密码错误");
         var jwt = _memoryCache.GetOrCreate($"ID:{userSearchResult.ID}", (e) =>
@@ -77,12 +77,12 @@ public class UserController : Controller
             e.AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(7);
             if (userSearchResult.Role == UserRole.用户)
             {
-                var claims = new List<Claim>
-                {
+                List<Claim> claims =
+                [
                     new(ClaimTypes.NameIdentifier, userSearchResult.ID.ToString()),
                     new(ClaimTypes.Name, userSearchResult.UserName),
                     new(ClaimTypes.Role, "user")
-                };
+                ];
                 string? key = _jwtsettingOpt.Value.SecrectKey;
                 DateTime expire = DateTime.Now.AddSeconds(_jwtsettingOpt.Value.ExpireSeconds);
                 string jwt = JwtHelper.JwtCreate(claims, key, expire);
@@ -91,13 +91,13 @@ public class UserController : Controller
             }
             else
             {
-                var claims = new List<Claim>
-                {
+                List<Claim> claims =
+                [
                     new(ClaimTypes.NameIdentifier, userSearchResult.ID.ToString()),
                     new(ClaimTypes.Name, userSearchResult.UserName),
                     new(ClaimTypes.Role, "user"),
                     new(ClaimTypes.Role, "admin")
-                };
+                ];
                 string? key = _jwtsettingOpt.Value.SecrectKey;
                 DateTime expire = DateTime.Now.AddSeconds(_jwtsettingOpt.Value.ExpireSeconds);
                 string jwt = JwtHelper.JwtCreate(claims, key, expire);
