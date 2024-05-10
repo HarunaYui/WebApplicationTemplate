@@ -16,21 +16,29 @@ namespace WebApplicationTemplate.AppDB;
 public static class Query
 {
 
+    /// <summary>
+    /// ADO数据库操作（非查询）
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="cnn"></param>
+    /// <param name="t"></param>
+    /// <param name="Id"></param>
+    /// <param name="defaultId"></param>
+    /// <returns>传入需要操作的类，给类赋值后传入参数,返回true则代表执行成功，False为失败</returns>
     public static async Task<bool> SqlUpdate<T>(this MySqlConnection cnn,T t,string Id,bool defaultId = false) where T : new()
     {
         if (defaultId)
             Id = "ID";
         await cnn.OpenAsync();
         Type type = typeof(T);
-        await using MySqlCommand command = new();
-        command.Connection = cnn;
-        command.CommandText = $"UPDATE {type.GetCustomAttributes(typeof(TableAttribute),false).FirstOrDefault()} SET {string.Join(',', type.GetProperties().Where(c=>!c.Name.Equals("ID")).Select(c=> $"{c}=@{c}"))} WHERE {Id.Replace($"{Id}",$"{Id}=@{Id}")}";
+        var sql = $"UPDATE {type.GetCustomAttributes(typeof(TableAttribute),false).FirstOrDefault()} SET {string.Join(',', type.GetProperties().Where(c=>!c.Name.Equals("ID")).Select(c=> $"{c}=@{c}"))} WHERE {Id.Replace($"{Id}",$"{Id}=@{Id}")}";
         var parameters = typeof(T).GetProperties().Select(c => new MySqlParameter()
         {
             ParameterName = $"@{c.Name}",
-            Value = $"{c.GetValue(t)}",
+            Value = c.GetValue(t) ?? DBNull.Value,
             MySqlDbType = Methods.GetSqlTypeDefault(c.PropertyType)
         }).ToArray();
+        await using MySqlCommand command = new(sql, cnn);
         command.CommandType = CommandType.Text;
         command.Parameters.AddRange(parameters);
         var result = await command.ExecuteNonQueryAsync() > 0;
