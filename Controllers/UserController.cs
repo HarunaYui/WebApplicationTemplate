@@ -66,7 +66,7 @@ public class UserController : Controller
         if (!validateresult.IsValid)
             return BadRequest(validateresult.ToString());
         var userSearchResult =
-            await _connection.QueryFirstOrDefaultAsync<User>($"SELECT * FROM user WHERE UserName = @UserName",
+            await _connection.QueryFirstOrDefaultAsync<User>($"SELECT * FROM users WHERE UserName = @UserName",
                 new {  userRegister.UserName });
         if (userSearchResult == null)
             return NotFound("未查询到用户");

@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
-    <DocumentationFile>F:\VS Test\TestWebApplication\WebTemplate.xml</DocumentationFile>
+    <DocumentationFile>D:\Personal Project\WebApplicationTemplate\WebTemplate.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

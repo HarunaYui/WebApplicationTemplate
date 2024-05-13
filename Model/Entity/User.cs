@@ -6,7 +6,7 @@ namespace WebApplicationTemplate.Model.Entity;
 /// <summary>
 /// 用户表
 /// </summary>
-[Table("user")]
+[Table("users")]
 public class User
 {
     /// <summary>

@@ -133,6 +133,17 @@
             封装数据库操作
             </summary>
         </member>
+        <member name="M:WebApplicationTemplate.AppDB.Query.SqlUpdate``1(MySqlConnector.MySqlConnection,``0,System.String,System.Boolean)">
+            <summary>
+            ADO数据库操作（非查询）
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="cnn"></param>
+            <param name="t"></param>
+            <param name="Id"></param>
+            <param name="defaultId"></param>
+            <returns>传入需要操作的类，给类赋值后传入参数,返回true则代表执行成功，False为失败</returns>
+        </member>
         <member name="M:WebApplicationTemplate.AppDB.Query.SqlSelect``1(MySqlConnector.MySqlConnection,System.String)">
             <summary>
             查询表全部数据
@@ -190,9 +201,9 @@
             <summary>
             用户登录
             </summary>
-            <param name="userName"></param>
-            <param name="passWord"></param>
-            <returns>返回JWT</returns>
+            <param name="userRegister"></param>
+            <param name="userRegisterOpt"></param>
+            <returns></returns>
         </member>
         <member name="M:WebApplicationTemplate.Controllers.UserController.RegisterUser(WebApplicationTemplate.Model.From.UserRegister,FluentValidation.IValidator{WebApplicationTemplate.Model.From.UserRegister})">
             <summary>
@@ -285,6 +296,11 @@
             密码
             </summary>
         </member>
+        <member name="P:WebApplicationTemplate.Model.Entity.User.Salt">
+            <summary>
+            密码用加密盐
+            </summary>
+        </member>
         <member name="P:WebApplicationTemplate.Model.Entity.User.Email">
             <summary>
             邮箱
@@ -315,14 +331,9 @@
             用户注册
             </summary>
         </member>
-        <member name="P:WebApplicationTemplate.Model.From.UserRegister.UserName">
+        <member name="M:WebApplicationTemplate.Model.From.UserRegister.#ctor(System.String,System.String)">
             <summary>
-            用户名
-            </summary>
-        </member>
-        <member name="P:WebApplicationTemplate.Model.From.UserRegister.PassWord">
-            <summary>
-            密码
+            用户注册
             </summary>
         </member>
         <member name="T:WebApplicationTemplate.Model.From.UserRegisterValidator">
@@ -334,6 +345,26 @@
             <summary>
             方法
             </summary>
+        </member>
+        <member name="T:WebApplicationTemplate.Model.UserPasswordSet">
+            <summary>
+            密码加密
+            </summary>
+        </member>
+        <member name="M:WebApplicationTemplate.Model.UserPasswordSet.SaltedPassword(System.String,System.String)">
+            <summary>
+            加密密码创建
+            </summary>
+            <param name="password"></param>
+            <param name="salt"></param>
+            <returns></returns>
+        </member>
+        <member name="M:WebApplicationTemplate.Model.UserPasswordSet.CreateSalt(System.String)">
+            <summary>
+            创建盐
+            </summary>
+            <param name="userName"></param>
+            <returns></returns>
         </member>
         <member name="T:WebApplicationTemplate.MyHub.MyHub">
             <summary>
